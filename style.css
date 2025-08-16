@@ -1,0 +1,303 @@
+/* --- 1. THEME & GLOBAL STYLES --- */
+:root {
+  --bg-color: #f9f9f9;
+  --text-color: #222;
+  --card-bg: #ffffff;
+  --link-color: #007bff;
+  --border-color: #ccc; /* Border color was missing */
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --arrow-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23333' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3E%3C/svg%3E");
+}
+html.dark {
+  --bg-color: #1c1c1e;
+  --text-color: #f2f2f7;
+  --card-bg: #2c2c2e;
+  --link-color: #0a84ff;
+  --border-color: #555; /* Border color was missing */
+  --shadow-color: rgba(0, 0, 0, 0.4);
+  --arrow-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23eee' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3E%3C/svg%3E");
+}
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: sans-serif; margin: 0; padding: 1rem;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+.card { background-color: var(--card-bg); border-radius: 12px; padding: 1.5rem; margin: 0 auto; max-width: 1200px; box-shadow: 0 4px 8px var(--shadow-color); }
+hr { border: none; border-top: 1px solid var(--border-color); margin: 1rem 0; }
+img { width: 1.2em; height: 1.2em; vertical-align: middle; }
+
+/* --- 2. NEW: UI CONTROLS & IMPORT AREA --- */
+.main-controls, .import-area { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.import-area { flex-direction: column; align-items: stretch; }
+h3 { margin-bottom: 0.5rem; }
+textarea { width: 100%; box-sizing: border-box; resize: vertical; padding: 0.5rem; background-color: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 6px; }
+button { padding: 0.6rem 1rem; border: none; background-color: var(--link-color); color: white; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+button:hover { opacity: 0.85; }
+
+.main-controls button.delete-all-btn {
+    background-color: #dc3545;
+    /* This pushes the button to the far right of the control bar */
+    margin-left: auto; 
+}
+
+/* --- NEW: MODAL STYLES --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 1;
+    transition: opacity 0.2s ease-in-out;
+}
+.modal-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+.modal-content {
+    background-color: var(--card-bg);
+    padding: 2rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+.modal-content h3 {
+    margin-top: 0;
+}
+.modal-content p {
+    margin-bottom: 1rem;
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+.close-modal-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.75rem;
+    font-size: 2rem;
+    background: none;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+/* Prevent background scroll when modal is open */
+body.modal-open {
+    overflow: hidden;
+}
+
+/* --- 3. LAYOUT (MOBILE FIRST) --- */
+.charm-entry { display: flex; flex-wrap: wrap; gap: 0.75rem; padding: 0.5rem; align-items: center; }
+
+.search-group, .list-group { display: flex; align-items: center; gap: 0.5rem; }
+
+.skill-group, .slots-group { flex: 1 1 100%; }
+.slots-group { white-space: nowrap; }
+
+/* --- 4. FORM & AUTOCOMPLETE STYLES --- */
+.input-wrapper {
+  position: relative;
+  /* This wrapper will grow and shrink to fill available space */
+  flex: 1 1 150px; /* grow:1, shrink:1, basis:150px (healthy start) */
+}
+
+.clear-skill-btn {
+    position: absolute;
+    /* FIX: Anchor the button to the right edge. 'em' units are best for scaling with font size. */
+    right: 1em; 
+    top: 50%;
+    transform: translateY(-50%);
+    background: none; border: none;
+    color: var(--border-color); font-size: 1.5rem; cursor: pointer;
+    padding: 0 0.5rem; line-height: 1;
+    z-index: 5;
+}
+.clear-skill-btn:hover { color: var(--text-color); }
+
+/* --- Shared Input & Select Styles --- */
+#search input[type="text"], #search select,
+.is-editing input[type="text"], .is-editing select {
+  box-sizing: border-box; 
+  width: 100%; 
+  padding: 0.5rem; font-size: 1rem;
+  background-color: var(--card-bg); color: var(--text-color);
+  border: 1px solid var(--border-color); border-radius: 6px;
+  -webkit-appearance: none; appearance: none;
+}
+
+/* --- C. Specific Sizing and Spacing --- */
+
+/* Skill Name Input: Needs space for clear button AND arrow */
+.input-wrapper input[type="text"] {
+  padding-right: 4em; /* Make space for X and arrow */
+  background-image: var(--arrow-svg);
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 0.8em;
+}
+select {
+  padding-right: 2em; /* Make space for arrow */
+  background-image: var(--arrow-svg);
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 0.8em;
+}
+
+/* --- Specific Sizing Using Flexbox --- */
+/* Skill Level: Don't grow, don't shrink, fixed width */
+.skill-group select {
+  flex-basis: 80px; /* Wider base for touch */
+  position: relative;
+  z-index: 10;
+}
+.slots-group select {
+  /* flex-grow: 1; */
+  /* min-width: 80px; */
+}
+/* Armor Slots: Don't grow, but CAN shrink from its ideal width */
+select[id*="armor-slots"], select[data-type="armor-slots"] {
+  /* flex: 0 1 110px; */
+  /* min-width: 5em; */
+}
+/* Weapon Slots: TIGHT */
+select[id*="weapon-slots"], select[data-type="weapon-slots"] {
+  flex: 0 0 65px;
+}
+
+.autocomplete-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+  
+  /* 
+    THESE ARE THE TWO NEW PROPERTIES THAT FIX THE PROBLEM
+  */
+  -webkit-overflow-scrolling: touch; /* 1. Enables smooth, momentum-based scrolling on iOS */
+  touch-action: pan-y;             /* 2. Tells the browser that touch gestures on this element are for vertical scrolling */
+
+  /* The rest of the styling is the same */
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    box-shadow: 0 4px 8px var(--shadow-color);
+}
+.autocomplete-results.hidden { display: none; }
+.autocomplete-results div { padding: 0.75rem 1rem; cursor: pointer; color: var(--text-color); }
+.autocomplete-results div:hover, .autocomplete-results div.active { background-color: var(--link-color); color: white; }
+
+/* --- NEW: FILTER CONTROL PANEL STYLES --- */
+#filter-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.03);
+    border-radius: 8px;
+}
+html.dark #filter-controls {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.control-group label {
+    cursor: pointer;
+    user-select: none; /* Prevents text selection on double click */
+}
+.control-actions {
+    margin-left: auto; /* Pushes these buttons to the right on desktop */
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Style for secondary buttons like 'Clear' */
+button.secondary-btn {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+}
+button.secondary-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+html.dark button.secondary-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Utility class to hide/show the manual search button */
+.hidden {
+    display: none !important;
+}
+
+/* --- 5. LIST ITEM STYLES --- */
+/* NEW: Hide the list header by default on mobile */
+#list-header { display: none; }
+.list-item { border-top: 1px solid var(--border-color); }
+/*
+   NEW RULE: This is the fix.
+   It targets every direct child that is a .list-group inside a .list-item
+   and forces it to take up the full width, creating the desired line breaks.
+*/
+.list-item > .list-group { flex-basis: 100%; }
+
+
+.list-group { font-size: 1rem; }
+.list-group span { opacity: 0.8; margin-right: 0.5em; }
+.list-group strong { font-weight: bold; }
+
+.actions-group {
+    flex: 1 1 100%; 
+    justify-content: flex-start; /* Changed from flex-end */
+    display: flex;
+}
+.actions-group button { margin-left: 0.5rem; }
+.actions-group button.add-btn {
+    background-color: #28a745; /* A green color */
+}
+.actions-group button.delete-btn { background-color: #dc3545; }
+.is-editing { background-color: rgba(0, 123, 255, 0.1); }
+html.dark .is-editing { background-color: rgba(10, 132, 255, 0.15); }
+
+#level-search-1, #level-search-2, #level-search-3, #search-weapon-slots {
+  flex: 0 0 3em;
+}
+/* --- 6. TABLET & PC LAYOUT --- */
+@media (min-width: 1300px) {
+  #list-header { display: grid; }
+  .charm-entry {
+    display: grid;
+    /* FIX: The last column ('auto') is replaced with a fixed width (e.g., 140px) */
+    /* This forces the header and list item action columns to be identical. */
+    grid-template-columns: 1fr 1fr 1fr 1fr 160px;
+    /* flex-wrap: nowrap; */
+    gap: 1rem;
+    /* padding: 0.75rem; */
+    /* NEW: Vertically align content in each row for better visual consistency */
+    align-items: center; 
+  }
+  
+  .skill-group, .slots-group, .list-group {
+    flex-basis: auto;
+    justify-content: flex-start;
+  }
+  .list-group.actions-group {
+    justify-content: center;
+  }
+}
